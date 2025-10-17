@@ -2,8 +2,10 @@ import logging
 
 from src.llm.llm import LanguageModel
 from src.llm.llm_schema import Move
-from src.chess_puzzle import ChessPuzzle
 from src.prompts.prompts import *
+from src.chess_utils import validate_move
+from src.move_node import MoveNode
+from src.engine import ChessEngine
 
 logger = logging.getLogger(__name__)
 
@@ -12,32 +14,44 @@ class PureLLMPlayer:
         self.llm = llm
         self.max_retries = max_retries
     
-    def get_next_move(self, fen_str, player, previous_tries = []):
-        player_str = 'white' if player else 'black'
+    def sample_next_move(self, fen_str, color, previous_tries = []):
+        player_str = 'white' if color else 'black'
         retry_warning = None if len(previous_tries) == 0 else illegal_moves_str.format(illegal_moves=previous_tries)
         get_move_prompt = pure_LLM_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen=fen_str, player=player_str)
         rsps = self.llm.structured_response(get_move_prompt, schema=Move)
         if not rsps:
-            logger.warning("Failed to get next move from LLM")
+            logger.warning("No response from LLM")
             return None
         else:
             return rsps[0].move
 
-    def play_puzzle(self, puzzle: ChessPuzzle):
-        fen_string = puzzle.get_board_state()
-        player = puzzle.get_current_player()
+    def get_next_moves(self, fen_str, color):
         previous_tries = []
 
         while len(previous_tries) < self.max_retries:
-            next_move = self.get_next_move(fen_string, player, previous_tries)
+            next_move = self.get_next_move(fen_str, color, previous_tries)
             if next_move == None: #LLM not giving a output, should abort
-                return False
-            if puzzle.play_move(next_move): #Successfully played next move
-                break
+                return None
+            if validate_move(next_move): #valid next move
+                return [next_move]
             else: #Illegal move, retry
                 previous_tries.append(next_move)
-        return len(previous_tries) < self.max_retries
-            
+        logger.warning("Failed to get a valid next move from LLM")
+        return None
+    
+    def select_next_move(self, curr_node: MoveNode):
+        assert curr_node.player == 1
+        if curr_node.has_children():
+            assert len(curr_node.children) == 1
+            return curr_node.children[0]
+
+        next_move = self.get_next_moves(self, curr_node.board_fen, curr_node.color)
+        if next_move == None:
+            return None
+        
+        node = MoveNode(player=1, board_fen=curr_node.next_fen, move=next_move, color=not curr_node.color, parent=curr_node)
+        return node
+    
 
 class EngineGuidedLLMPlayer:
     def __init__(self):
@@ -46,3 +60,30 @@ class EngineGuidedLLMPlayer:
 class LanguageGuidedLLMPlayer:
     def __init__(self):
         pass
+    
+    
+class KBestPlayer:
+    #k: number of variations to explore.
+    #d: number of steps to forsee. 1 means player plays 1 move. 2 means player plays 2 moves etc.
+    def __init__(self, k, engine: ChessEngine):
+        self.k = k
+        self.engine = engine
+    
+    #Returns the set of candidate moves
+    def get_next_moves(self, fen_str, color):
+        best_moves = self.engine.get_top_moves(fen=fen_str, k=self.k)
+        return best_moves[self.k - 1]
+    
+    #Select the move that maximally exploit the opposing player
+    def select_next_move(self, curr_node: MoveNode):
+        assert curr_node.player == 1
+        if curr_node.has_children():
+            assert len(curr_node.children) == 1
+            return curr_node.children[0]
+
+        next_move = self.get_next_moves(self, curr_node.board_fen, curr_node.color)
+        if next_move == None:
+            return None
+        
+        node = MoveNode(player=1, board_fen=curr_node.next_fen, move=next_move, color=not curr_node.color, parent=curr_node)
+        return node
