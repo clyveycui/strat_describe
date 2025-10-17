@@ -39,17 +39,17 @@ class PureLLMPlayer:
         logger.warning("Failed to get a valid next move from LLM")
         return None
     
-    def select_next_move(self, curr_node: MoveNode):
-        assert curr_node.player == 1
-        if curr_node.has_children():
-            assert len(curr_node.children) == 1
-            return curr_node.children[0]
+    def select_next_move(self, prev_node: MoveNode):
+        assert prev_node.player == 0
+        if prev_node.has_children():
+            assert len(prev_node.children) == 1
+            return prev_node.children[0]
 
-        next_move = self.get_next_moves(self, curr_node.board_fen, curr_node.color)
+        next_move = self.get_next_moves(prev_node.board_fen, prev_node.color)[0]
         if next_move == None:
             return None
         
-        node = MoveNode(player=1, board_fen=curr_node.next_fen, move=next_move, color=not curr_node.color, parent=curr_node)
+        node = MoveNode(player=1, board_fen=prev_node.next_fen, move=next_move, color=not prev_node.color, parent=prev_node)
         return node
     
 
@@ -72,18 +72,19 @@ class KBestPlayer:
     #Returns the set of candidate moves
     def get_next_moves(self, fen_str, color):
         best_moves = self.engine.get_top_moves(fen=fen_str, k=self.k)
-        return best_moves[self.k - 1]
+        return [best_moves[self.k - 1]['Move']]
     
     #Select the move that maximally exploit the opposing player
-    def select_next_move(self, curr_node: MoveNode):
-        assert curr_node.player == 1
-        if curr_node.has_children():
-            assert len(curr_node.children) == 1
-            return curr_node.children[0]
+    def select_next_move(self, prev_node: MoveNode):
+        assert prev_node.player == 0
+        if prev_node.has_children():
+            assert len(prev_node.children) == 1
+            return prev_node.children[0]
 
-        next_move = self.get_next_moves(self, curr_node.board_fen, curr_node.color)
+        next_move = self.get_next_moves(prev_node.next_fen, prev_node.color)[0]
         if next_move == None:
             return None
         
-        node = MoveNode(player=1, board_fen=curr_node.next_fen, move=next_move, color=not curr_node.color, parent=curr_node)
+        node = MoveNode(player=1, board_fen=prev_node.next_fen, move=next_move, color=not prev_node.color, parent=prev_node)
+        prev_node.add_children([node])
         return node

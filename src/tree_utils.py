@@ -45,7 +45,7 @@ def construct_moves_tree(prev_node: MoveNode, player, opponent, remaining_moves:
 #Player is always maximizing, opponent always minimizing
 def minimax(node: MoveNode, depth: int, engine: ChessEngine, white_is_max = True):
     if depth == 0 or not node.has_children():
-        score = engine.eval_board(node.next_fen())
+        score = engine.eval_board(node.next_fen)
         if not white_is_max:
             score *= -1
         return None, score

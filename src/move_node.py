@@ -7,8 +7,9 @@ class MoveNode:
         self.player = player # 1 for player, 0 for opponent
         self.color = color # True for White, False for black
         self.board_fen = board_fen
-        self.next_fen = get_next_fen(self.board_fen, self.move)
         self.move = move
+        self.next_fen = get_next_fen(self.board_fen, self.move)
+
 
     def has_children(self):
         return len(self.children) > 0
@@ -18,7 +19,7 @@ class MoveNode:
 
     def next_player(self):
         return (self.player + 1) % 2
-
         
-    
+    def __repr__(self):
+        return f"{{Move: {self.move}, children:{self.children}}}"
                 
