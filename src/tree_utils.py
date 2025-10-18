@@ -2,6 +2,7 @@ from src.move_node import MoveNode
 from src.engine import ChessEngine
 from numpy import argmin, argmax
 
+
 def get_next_move_nodes(prev_node: MoveNode, player, opponent):
     #Player
     prev_player = prev_node.player

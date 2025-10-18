@@ -44,7 +44,7 @@ class LanguageModel:
         outputs = self.model.generate(prompts=prompts, sampling_params=sampling_params)
         return outputs
     
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+    # @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
     def structured_response(self, message: list, schema: BaseModel, max_tokens: int=4096):
         rsps = []
         logger.info(f'MESSAGES: {message}')
@@ -66,18 +66,20 @@ class LanguageModel:
             time.sleep(1)
             for m in message:
                 msg = [{"role": "user", "content": m}]
-                completion = self.model.beta.chat.completions.parse(
-                    model=self.model_name, 
-                    messages=msg,
-                    n=1,
-                    max_tokens=max_tokens, 
-                    response_format=schema)
-                rsp = completion.choices[0].message
-                if (rsp.refusal):
-                    print(rsp.refusal)
-                    logger.error(rsp.refusal)
-                    return None
-                else:
-                    rsps.append(rsp.parsed)
+                response = self.model.responses.parse(
+                    model=self.model_name,
+                    reasoning={
+                        "effort": "low"
+                    },
+                    input = msg,
+                    text_format=schema)
+                rsp = response
+                # if (response.refusal):
+                #     print(response.refusal)
+                #     logger.error(response.refusal)
+                #     return None
+                # else:
+                rsps.append(rsp.output_parsed)
+                logger.info(rsp)
         logger.info(f'RESPONSES: {rsps}')
         return rsps

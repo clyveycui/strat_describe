@@ -21,5 +21,5 @@ class MoveNode:
         return (self.player + 1) % 2
         
     def __repr__(self):
-        return f"{{Move: {self.move}, children:{self.children}}}"
+        return self.move
                 
