@@ -19,7 +19,7 @@ class ChessEngine:
             if eval['value']== 0:
                 curr_p = get_player_from_fen(fen)
                 return 100000 if not curr_p else -100000
-            return 100000 if eval['value'] > 1 else -100000
+            return 100000 if eval['value'] >= 1 else -100000
         
     def get_top_moves(self, fen, k):
         self.stockfish.set_fen_position(fen)

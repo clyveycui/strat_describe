@@ -56,9 +56,9 @@ def load_api(path):
 def main(args):
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
-    # llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
-    # player = PureLLMPlayer(llm)
-    player = KBestPlayer(k=1, engine=engine)
+    llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
+    player = PureLLMPlayer(llm)
+    #player = KBestPlayer(k=1, engine=engine)
     res = []
     for i in range(args.count):
         pstr = puzzles.iloc[i]
@@ -67,8 +67,9 @@ def main(args):
         pid = pstr['PuzzleId']
         puzzle = ChessPuzzle(fen, main_line)
         moves, final_eval = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine)
-        res.append([pid, moves, final_eval])
-    res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval'])
+        solving_player = puzzle.solving_player
+        res.append([pid, moves, final_eval, solving_player])
+    res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player'])
     res_df.to_csv(args.res_out)
 
 if __name__ ==  '__main__':
