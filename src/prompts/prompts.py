@@ -35,7 +35,6 @@ Please follow this JSON template:
 '''
 
 #Conversation styled:
-
 guided_LLM_conversation_first_get_next_move_prompt_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation. You are also given a description of the strategy by a chess expert, which you should try to follow. You should come up with the next best move in the UCI format for the current player. 
 {illegal_moves}
 FEN:
@@ -85,4 +84,20 @@ Please follow this JSON template:
     "reason" : "<reasoning for the move>",
     "move" : "<chess move in UCI string>"
 }}
+'''
+
+verbalize_main_line_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves and the possible responses by the opponent so that another chess player will be able to follow this description and play the strategy as shown here. 
+
+FEN:
+{fen_str}
+Current Player:
+{player}
+Principle Line:
+{principle_line}
+
+Please follow this JSON template:
+{{
+    "description" : "<description of the principle line and the strategy behind it>",
+}}
+
 '''

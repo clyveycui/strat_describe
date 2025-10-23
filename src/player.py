@@ -59,6 +59,7 @@ class LanguageGuidedLLMPlayer:
         self.conversational = False
     
     def sample_next_move(self, fen_str, color, previous_tries = []):
+        pass
         # player_str = 'white' if color else 'black'
         # retry_warning = '' if len(previous_tries) == 0 else illegal_moves_str.format(illegal_moves=previous_tries)
         # get_move_prompt = pure_LLM_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen_str=fen_str, player=player_str)
@@ -70,6 +71,7 @@ class LanguageGuidedLLMPlayer:
         #     return rsps[0].move[:4]
 
     def get_next_moves(self, fen_str, color):
+        pass
         # previous_tries = []
 
         # while len(previous_tries) < self.max_retries:
@@ -84,6 +86,7 @@ class LanguageGuidedLLMPlayer:
         # return None
     
     def select_next_move(self, prev_node: MoveNode):
+        pass
         # assert prev_node.player == 0
         # if prev_node.has_children():
         #     assert len(prev_node.children) == 1
