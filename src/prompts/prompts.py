@@ -24,7 +24,7 @@ Current Player:
 {player}
 Strategy:
 {strat_str}
-Previous Moves:
+Previous Sequence of Moves:
 {prev_moves}
 
 Please follow this JSON template:
@@ -86,7 +86,7 @@ Please follow this JSON template:
 }}
 '''
 
-verbalize_main_line_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves and the possible responses by the opponent so that another chess player will be able to follow this description and play the strategy as shown here. 
+verbalize_main_line_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves from the perspective of the current player and the possible responses by the opponent so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
 
 FEN:
 {fen_str}
@@ -97,7 +97,16 @@ Principle Line:
 
 Please follow this JSON template:
 {{
-    "description" : "<description of the principle line and the strategy behind it>",
+"description" : "<description of the principle line and the strategy behind it>",
 }}
+'''
 
+verbalize_main_line_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves and the possible responses by the opponent so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
+
+FEN:
+{fen_str}
+Current Player:
+{player}
+Principle Line:
+{principle_line}
 '''

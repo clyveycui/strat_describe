@@ -3,10 +3,11 @@ import logging
 from src.chess_puzzle import ChessPuzzle
 from src.move_node import MoveNode
 from src.engine import ChessEngine
-from src.player import PureLLMPlayer, KBestPlayer
+from src.player import PureLLMPlayer, KBestPlayer, LanguageGuidedLLMPlayer
 from src.opponent import Opponent
 from src.tree_utils import construct_moves_tree
 from src.llm.llm import LanguageModel
+from src.strat_verbalizer import LLMVerbalizer
 
 from torch.cuda import device_count
 import pandas as pd
@@ -16,13 +17,18 @@ import json
 logger = logging.getLogger(__name__)
 
 
-def play_puzzle(puzzle, player, opp_k, opp_d, engine):
+def play_puzzle(puzzle, player, opp_k, opp_d, engine, strat_type='none'):
     puzzle_root = MoveNode(player=0, board_fen=puzzle.fen, move=puzzle.initial_move_uci, color=not puzzle.solving_player, parent=None)
     opponent = Opponent(k=opp_k, d=opp_d, color=not puzzle.solving_player, engine=engine)
     
     total_moves = 0
     moves_to_play = puzzle.moves_to_play
     prev_node = puzzle_root
+    
+    if strat_type =='main':
+        main_line = puzzle.solution
+        player.get_description(puzzle_root.next_fen, puzzle.solving_player, main_line, str ='main')
+    
 
     moves = [prev_node]
     try:
@@ -57,7 +63,9 @@ def main(args):
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
     llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
-    player = PureLLMPlayer(llm)
+    strat_verbalizer = LLMVerbalizer(llm)
+    player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
+    # player = PureLLMPlayer(llm)
     #player = KBestPlayer(k=1, engine=engine)
     res = []
     for i in range(args.count):
@@ -66,7 +74,7 @@ def main(args):
         main_line = pstr['Moves'].split()
         pid = pstr['PuzzleId']
         puzzle = ChessPuzzle(fen, main_line)
-        moves, final_eval = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine)
+        moves, final_eval = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, strat_type=args.strat_type)
         solving_player = puzzle.solving_player
         res.append([pid, moves, final_eval, solving_player])
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player'])
@@ -81,6 +89,7 @@ if __name__ ==  '__main__':
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
     args_parser.add_argument('--res_out', type=str, default='./data/results/Qwen_2000_1_1.csv')
+    args_parser.add_argument('--strat_type', type=str, default='none')
     
     args = args_parser.parse_args()
     

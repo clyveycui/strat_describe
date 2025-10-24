@@ -10,12 +10,12 @@ def get_next_move_nodes(prev_node: MoveNode, player, opponent):
     next_color = not prev_node.color
     next_nodes = []
     if prev_player == 0:
-        next_moves = player.get_next_moves(next_fen, next_color)
+        next_moves = player.get_next_moves(prev_node)
         assert next_moves != None
         for move in next_moves:
             next_nodes.append(MoveNode(player=1, board_fen=next_fen, move=move, color=next_color, parent=prev_node))
     elif prev_player == 1:
-        next_moves = opponent.get_next_moves(next_fen, next_color)
+        next_moves = opponent.get_next_moves(prev_node)
         assert next_moves != None
         for move in next_moves:
             next_nodes.append(MoveNode(player=0, board_fen=next_fen, move=move, color=next_color, parent=prev_node))
@@ -64,3 +64,9 @@ def minimax(node: MoveNode, depth: int, engine: ChessEngine, player_color: bool)
     score = scores[best_choice]
     next_node = node.children[best_choice]
     return next_node, score
+
+def get_sequence_of_moves(node: MoveNode):
+    if node.parent == None:
+        return [node.move]
+    previous_moves = get_sequence_of_moves(node.parent)
+    return previous_moves.append(node.move)

@@ -13,8 +13,9 @@ class Opponent:
         self.color = color
     
     #Returns the set of candidate moves
-    def get_next_moves(self, fen_str, color):
-        best_moves = self.engine.get_top_moves(fen=fen_str, k=self.k)
+    def get_next_moves(self, prev_node: MoveNode):
+        next_fen = prev_node.next_fen
+        best_moves = self.engine.get_top_moves(fen=next_fen, k=self.k)
         best_moves_strings = [m['Move'] for m in best_moves]
         return best_moves_strings
     
