@@ -13,7 +13,7 @@ class LLMVerbalizer:
         
     def sample_verbalized_strategy(self, fen_str, color, main_line):
         player_str = 'white' if color else 'black'
-        get_move_prompt = verbalize_main_line_structured_output.format(fen_str=fen_str, player=player_str, main_line=main_line)
+        get_move_prompt = verbalize_main_line_structured_output.format(fen_str=fen_str, player=player_str, principle_line=main_line)
         rsps = self.llm.structured_response([get_move_prompt], schema=StrategyDescription)
         if not rsps:
             logger.warning("No response from LLM")

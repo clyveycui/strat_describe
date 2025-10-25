@@ -13,6 +13,7 @@ from torch.cuda import device_count
 import pandas as pd
 import argparse
 import json
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, strat_type='none'):
     
     if strat_type =='main':
         main_line = puzzle.solution
-        player.get_description(puzzle_root.next_fen, puzzle.solving_player, main_line, str ='main')
+        player.get_description(puzzle_root.next_fen, puzzle.solving_player, main_line, type ='main')
     
 
     moves = [prev_node]
@@ -44,8 +45,9 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, strat_type='none'):
             moves.append(next_node)
             prev_node = next_node
             total_moves += 1
-    except Exception as e:
-        logger.warning(f'Puzzle failed with exception {e}')
+    except Exception:
+        
+        logger.warning(f'Puzzle failed with exception {traceback.format_exc()}')
         return None, None
 
     return moves, engine.eval_board(prev_node.next_fen)
@@ -63,9 +65,9 @@ def main(args):
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
     llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
-    strat_verbalizer = LLMVerbalizer(llm)
-    player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
-    # player = PureLLMPlayer(llm)
+    #strat_verbalizer = LLMVerbalizer(llm)
+    #player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
+    player = PureLLMPlayer(llm)
     #player = KBestPlayer(k=1, engine=engine)
     res = []
     for i in range(args.count):

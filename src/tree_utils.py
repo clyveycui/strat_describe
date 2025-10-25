@@ -69,4 +69,5 @@ def get_sequence_of_moves(node: MoveNode):
     if node.parent == None:
         return [node.move]
     previous_moves = get_sequence_of_moves(node.parent)
-    return previous_moves.append(node.move)
+    previous_moves.append(node.move)
+    return previous_moves

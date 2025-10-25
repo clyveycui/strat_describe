@@ -6,7 +6,7 @@ from src.prompts.prompts import *
 from src.chess_utils import validate_move
 from src.move_node import MoveNode
 from src.engine import ChessEngine
-from tree_utils import get_sequence_of_moves
+from src.tree_utils import get_sequence_of_moves
 
 logger = logging.getLogger(__name__)
 
