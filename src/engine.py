@@ -1,5 +1,6 @@
 from stockfish import Stockfish
-from src.chess_utils import get_player_from_fen
+from src.chess_utils import get_color_from_fen
+from src.move_node import MoveNode
 
 class ChessEngine:
     
@@ -17,10 +18,33 @@ class ChessEngine:
         elif eval['type'] == 'mate':
             # If value == 0 then last moved player wins
             if eval['value']== 0:
-                curr_p = get_player_from_fen(fen)
+                curr_p = get_color_from_fen(fen)
                 return 100000 if not curr_p else -100000
             return 100000 if eval['value'] >= 1 else -100000
         
     def get_top_moves(self, fen, k):
         self.stockfish.set_fen_position(fen)
         return self.stockfish.get_top_moves(k)
+    
+    #j : opponent variations to consider
+    #c : number of moves to play in total, should be odd
+    def get_strategy(self, fen:str, j:int, c:int):
+        #using move node to construct a quick and simple strategy
+        def iter(cc:int, prev_node:MoveNode, move:str, player:bool):
+            if prev_node == None:
+                cur_node = MoveNode(1 if player else 0, fen, move, get_color_from_fen(fen), prev_node)
+            else:
+                cur_node = MoveNode(prev_node.next_player(), prev_node.next_fen, move, prev_node.next_color(), prev_node)
+            if cc == c:
+                assert player
+                return cur_node
+            
+            next_moves = self.get_top_moves(cur_node.next_fen, j if player else 1)
+            next_nodes = [iter(cc + 1, cur_node, m['Move'], not player) for m in next_moves]
+            cur_node.add_children(next_nodes)
+            return cur_node
+        
+        best_move = self.get_top_moves(fen, 1)[0]['Move']
+        
+        root = iter(1, None, best_move, True)
+        return root

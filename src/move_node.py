@@ -1,4 +1,4 @@
-from src.chess_utils import get_next_fen
+from src.chess_utils import get_next_fen, bool_to_color_str
 
 class MoveNode:
     def __init__(self, player, board_fen, move, color, parent=None):
@@ -19,6 +19,12 @@ class MoveNode:
 
     def next_player(self):
         return (self.player + 1) % 2
+    
+    def color_string(self):
+        return bool_to_color_str(self.color)
+    
+    def next_color(self):
+        return not self.color
         
     def __repr__(self):
         return self.move

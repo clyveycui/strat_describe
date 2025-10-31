@@ -86,7 +86,7 @@ Please follow this JSON template:
 }}
 '''
 
-verbalize_main_line_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves from the perspective of the current player and the possible responses by the opponent so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
+verbalize_main_line_structured_output = '''You are analysing a game of Chess right now. You are given the current state of the board in FEN notation, the current player's color, and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves from the perspective of the current player so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
 
 FEN:
 {fen_str}
@@ -101,12 +101,17 @@ Please follow this JSON template:
 }}
 '''
 
-verbalize_main_line_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation and the principle line in UCI format as calculated by a chess engine. You should provide a high level description of this line of moves and the possible responses by the opponent so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
+verbalize_strategy_structured_output = '''You are analysing a game of Chess right now. You are given the current state of the board in FEN notation, the current player's color, and a strategy describing the best moves for the current player as well as possible opponent response variations as calculated by a chess engine. The strategy is represented as a json tree, and the moves in the strategy are in the UCI format. You should provide a high level description of this line of moves from the perspective of the current player so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
 
 FEN:
 {fen_str}
 Current Player:
 {player}
-Principle Line:
-{principle_line}
+Strategy:
+{strategy}
+
+Please follow this JSON template:
+{{
+"description" : "<high level description of the strategy>",
+}}
 '''

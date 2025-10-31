@@ -71,3 +71,7 @@ def get_sequence_of_moves(node: MoveNode):
     previous_moves = get_sequence_of_moves(node.parent)
     previous_moves.append(node.move)
     return previous_moves
+
+def get_json(node: MoveNode):    
+    return {'player' : node.color_string(), 'move' : node.move, 'responses' : [get_json(c) for c in node.children] if node.has_children() else []}
+    

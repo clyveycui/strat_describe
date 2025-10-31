@@ -3,7 +3,7 @@ import logging
 from src.llm.llm import LanguageModel
 from src.llm.llm_schema import Move
 from src.prompts.prompts import *
-from src.chess_utils import validate_move
+from src.chess_utils import validate_move, bool_to_color_str
 from src.move_node import MoveNode
 from src.engine import ChessEngine
 from src.tree_utils import get_sequence_of_moves
@@ -16,7 +16,7 @@ class PureLLMPlayer:
         self.max_retries = max_retries
     
     def sample_next_move(self, fen_str, color, previous_tries = []):
-        player_str = 'white' if color else 'black'
+        player_str = bool_to_color_str(color)
         retry_warning = '' if len(previous_tries) == 0 else illegal_moves_str.format(illegal_moves=previous_tries)
         get_move_prompt = pure_LLM_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen_str=fen_str, player=player_str)
         rsps = self.llm.structured_response([get_move_prompt], schema=Move)
@@ -71,7 +71,7 @@ class LanguageGuidedLLMPlayer:
     def sample_next_move(self, fen_str, color, previous_moves, previous_tries = []):
         if self.description == None:
             logger.warning("No description of strategy is provided")
-        player_str = 'white' if color else 'black'
+        player_str = bool_to_color_str(color)
         retry_warning = '' if len(previous_tries) == 0 else illegal_moves_str.format(illegal_moves=previous_tries)
         if not self.conversational:
             get_move_prompt = guided_LLM_stateless_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen_str=fen_str, player=player_str, prev_moves=previous_moves, strat_str=self.description)
