@@ -35,5 +35,10 @@ class LLMVerbalizer:
                 break
             retries += 1
         return description
+
+#Verbalizer that does not verbalize the strategy, just returns the original strategy in its form
+class DirectVerbalizer:
+    def verbalize(self, fen_str, color, strategy, type):
+        return strategy
         
 

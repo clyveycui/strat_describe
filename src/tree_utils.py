@@ -1,6 +1,7 @@
 from src.move_node import MoveNode
 from src.engine import ChessEngine
 from numpy import argmin, argmax
+from json import dumps
 
 
 def get_next_move_nodes(prev_node: MoveNode, player, opponent):
@@ -72,6 +73,8 @@ def get_sequence_of_moves(node: MoveNode):
     previous_moves.append(node.move)
     return previous_moves
 
-def get_json(node: MoveNode):    
-    return {'player' : node.color_string(), 'move' : node.move, 'responses' : [get_json(c) for c in node.children] if node.has_children() else []}
+def get_json(node: MoveNode):
+    def recurse(node):    
+        return {'player' : node.color_string(), 'move' : node.move, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
+    return dumps(recurse(node), indent=2)
     

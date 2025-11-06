@@ -56,16 +56,18 @@ class PureLLMPlayer:
         return node
     
 class LanguageGuidedLLMPlayer:
-    def __init__(self, llm : LanguageModel, strat_verbalizer, max_retries : int = 3, conversational: bool=False):
+    def __init__(self, llm : LanguageModel, strat_verbalizer, max_retries : int = 3, conversational: bool=False, language_description: bool=False):
         self.llm = llm
         self.max_retries = max_retries
         self.conversational = conversational
         self.strat_verbalizer = strat_verbalizer
         self.description = None
+        self.description_type = None
         
     def get_description(self, fen_str, color, strategy, type: str ='main'):
         description = self.strat_verbalizer.verbalize(fen_str, color, strategy, type)
         self.description = description
+        self.description_type = type
         return description
         
     def sample_next_move(self, fen_str, color, previous_moves, previous_tries = []):
@@ -74,7 +76,10 @@ class LanguageGuidedLLMPlayer:
         player_str = bool_to_color_str(color)
         retry_warning = '' if len(previous_tries) == 0 else illegal_moves_str.format(illegal_moves=previous_tries)
         if not self.conversational:
-            get_move_prompt = guided_LLM_stateless_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen_str=fen_str, player=player_str, prev_moves=previous_moves, strat_str=self.description)
+            if self.description_type == 'json':
+                get_move_prompt = directly_guided_LLM_stateless_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen_str=fen_str, player=player_str, prev_moves=previous_moves, strat_str=self.description)
+            else:
+                get_move_prompt = guided_LLM_stateless_get_next_move_prompt_structured_output.format(illegal_moves=retry_warning, fen_str=fen_str, player=player_str, prev_moves=previous_moves, strat_str=self.description)
         else:
             raise NotImplementedError('Conversational Mode not implemented')
         rsps = self.llm.structured_response([get_move_prompt], schema=Move)

@@ -34,6 +34,24 @@ Please follow this JSON template:
 }}
 '''
 
+directly_guided_LLM_stateless_get_next_move_prompt_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation. You are also given a strategy in the form of a JSON tree describing the best moves for you as well as possible opponent response variations as calculated by a chess engine, which you should try to follow. You should come up with the next best move in the UCI format for the current player. 
+{illegal_moves}
+FEN:
+{fen_str}
+Current Player:
+{player}
+Strategy:
+{strat_str}
+Previous Sequence of Moves:
+{prev_moves}
+
+Please follow this JSON template:
+{{
+    "reason" : "<reasoning for the move>",
+    "move" : "<chess move in UCI string>"
+}}
+'''
+
 #Conversation styled:
 guided_LLM_conversation_first_get_next_move_prompt_structured_output = '''We are playing a game of Chess right now. You are given the current state of the board in FEN notation. You are also given a description of the strategy by a chess expert, which you should try to follow. You should come up with the next best move in the UCI format for the current player. 
 {illegal_moves}

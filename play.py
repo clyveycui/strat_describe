@@ -5,9 +5,9 @@ from src.move_node import MoveNode
 from src.engine import ChessEngine
 from src.player import PureLLMPlayer, KBestPlayer, LanguageGuidedLLMPlayer
 from src.opponent import Opponent
-from src.tree_utils import construct_moves_tree
+from src.tree_utils import construct_moves_tree, get_json
 from src.llm.llm import LanguageModel
-from src.strat_verbalizer import LLMVerbalizer
+from src.strat_verbalizer import LLMVerbalizer, DirectVerbalizer
 
 from torch.cuda import device_count
 import pandas as pd
@@ -17,8 +17,14 @@ import traceback
 
 logger = logging.getLogger(__name__)
 
+def get_strat(puzzle, puzzle_root, engine, strat_type='main', j=1):
+    if strat_type =='main':
+        return puzzle.solution
+    elif strat_type =='tree' or strat_type == 'json':
+        return get_json(engine.get_strategy(puzzle_root.next_fen, j, puzzle.moves_to_play))
 
-def play_puzzle(puzzle, player, opp_k, opp_d, engine, strat_type='none'):
+def play_puzzle(puzzle, player, opp_k, opp_d, engine, strat_type='main', j=1):
+    logger.info(f"Playing Puzzle {puzzle.pid}")
     puzzle_root = MoveNode(player=0, board_fen=puzzle.fen, move=puzzle.initial_move_uci, color=not puzzle.solving_player, parent=None)
     opponent = Opponent(k=opp_k, d=opp_d, color=not puzzle.solving_player, engine=engine)
     
@@ -26,10 +32,10 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, strat_type='none'):
     moves_to_play = puzzle.moves_to_play
     prev_node = puzzle_root
     
-    if strat_type =='main':
-        main_line = puzzle.solution
-        player.get_description(puzzle_root.next_fen, puzzle.solving_player, main_line, type ='main')
-    
+    strategy = get_strat(puzzle, puzzle_root, engine, strat_type, j)
+
+    logger.info(f"Strategy for puzzle: fen: {puzzle_root.next_fen} strategy: {strategy}")
+    player.get_description(puzzle_root.next_fen, puzzle.solving_player, strategy, type=strat_type)
 
     moves = [prev_node]
     try:
@@ -62,12 +68,14 @@ def load_api(path):
     return api_key
 
 def main(args):
+    logger.info(f"Starting experiment with parameters: opp_k : {args.opp_k}  opp_d : {args.opp_d} player_k : {args.player_k}, llm : {args.player_llm}")
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
     llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
     #strat_verbalizer = LLMVerbalizer(llm)
-    #player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
-    player = PureLLMPlayer(llm)
+    strat_verbalizer = DirectVerbalizer()
+    player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
+    #player = PureLLMPlayer(llm)
     #player = KBestPlayer(k=1, engine=engine)
     res = []
     for i in range(args.count):
@@ -75,8 +83,8 @@ def main(args):
         fen = pstr['FEN']
         main_line = pstr['Moves'].split()
         pid = pstr['PuzzleId']
-        puzzle = ChessPuzzle(fen, main_line)
-        moves, final_eval = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, strat_type=args.strat_type)
+        puzzle = ChessPuzzle(fen, main_line, pid)
+        moves, final_eval = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, strat_type=args.strat_type, j=args.player_k)
         solving_player = puzzle.solving_player
         res.append([pid, moves, final_eval, solving_player])
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player'])
@@ -85,13 +93,14 @@ def main(args):
 if __name__ ==  '__main__':
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--puzzles_file', type=str, default='./data/puzzles/lichess_db_puzzle.csv')
-    args_parser.add_argument('--count', type=int, default=1000)
+    args_parser.add_argument('--count', type=int, default=50)
     args_parser.add_argument('--player_llm', type=str, default="o3")
     args_parser.add_argument('--log', type=str, default='out.log')
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
-    args_parser.add_argument('--res_out', type=str, default='./data/results/Qwen_2000_1_1.csv')
-    args_parser.add_argument('--strat_type', type=str, default='none')
+    args_parser.add_argument('--player_k', type=int, default=1)
+    args_parser.add_argument('--res_out', type=str, default='./data/results/o3_50_1_1.csv')
+    args_parser.add_argument('--strat_type', type=str, default='main')
     
     args = args_parser.parse_args()
     
