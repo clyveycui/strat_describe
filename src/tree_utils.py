@@ -1,6 +1,7 @@
 from src.move_node import MoveNode
 from src.engine import ChessEngine
-from numpy import argmin, argmax
+from src.chess_utils import CHECK_MATE_SCORE
+from numpy import argmin, argmax, abs
 from json import dumps
 
 
@@ -23,14 +24,14 @@ def get_next_move_nodes(prev_node: MoveNode, player, opponent):
     return next_nodes
 
 #Assumes is constructed on the Opponent's turn
-def construct_moves_tree(prev_node: MoveNode, player, opponent, remaining_moves: int, prune: int = 200000):
+#We can prune by just halting the moment we see a bad move by the LLM player, since opponent chooses which branch to go
+def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remaining_moves: int, prune: int = 2 * CHECK_MATE_SCORE):
     depth = opponent.d * 2
     depth = min(remaining_moves, depth)
     
     current_depth = 0
     current_frontier = [prev_node]
     next_frontier = []
-
     while current_depth < depth:
         for node in current_frontier:
             if node.has_children():
@@ -38,11 +39,17 @@ def construct_moves_tree(prev_node: MoveNode, player, opponent, remaining_moves:
             else:
                 next_nodes = get_next_move_nodes(node, player, opponent)
                 node.add_children(next_nodes)
+                if prune < 2 * CHECK_MATE_SCORE and node.player == 0:
+                    assert len(next_nodes) == 1
+                    prev_score = engine.eval_board(node.next_fen)
+                    next_score = engine.eval_board(next_nodes[0].next_fen)
+                    if abs(prev_score - next_score) > prune:
+                        return next_nodes
                 next_frontier.extend(next_nodes)
         current_depth += 1
         current_frontier = next_frontier
         next_frontier = []
-
+    return None
 #Gets score of node by performing minimax algorithm up to depth 
 #Player is always maximizing, opponent always minimizing
 def minimax(node: MoveNode, depth: int, engine: ChessEngine, player_color: bool):
