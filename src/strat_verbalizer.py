@@ -42,3 +42,4 @@ class DirectVerbalizer:
         return strategy
         
 
+#TODO: Implement caching of strategy so it is consistent across different opp parameters

@@ -88,22 +88,21 @@ def main(args):
         solving_player = puzzle.solving_player
         res.append([pid, moves, final_eval, solving_player])
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player'])
-    res_df.to_csv(args.res_out)
-
+    out_file = f'./data/results/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}.csv'
+    res_df.to_csv(out_file)
+    
 if __name__ ==  '__main__':
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--puzzles_file', type=str, default='./data/puzzles/lichess_db_puzzle.csv')
     args_parser.add_argument('--count', type=int, default=50)
     args_parser.add_argument('--player_llm', type=str, default="o3")
-    args_parser.add_argument('--log', type=str, default='out.log')
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
     args_parser.add_argument('--player_k', type=int, default=1)
-    args_parser.add_argument('--res_out', type=str, default='./data/results/o3_50_1_1.csv')
     args_parser.add_argument('--strat_type', type=str, default='main')
     
     args = args_parser.parse_args()
-    
-    logging.basicConfig(filename=args.log, format="%(asctime)s - %(levelname)s : %(message)s", encoding='utf-8', level=logging.INFO)
+    log_file = f'./data/logs/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}.log'
+    logging.basicConfig(filename=log_file, format="%(asctime)s - %(levelname)s : %(message)s", encoding='utf-8', level=logging.INFO)
     
     main(args)
