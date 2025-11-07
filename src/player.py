@@ -3,7 +3,7 @@ import logging
 from src.llm.llm import LanguageModel
 from src.llm.llm_schema import Move
 from src.prompts.prompts import *
-from src.chess_utils import validate_move, bool_to_color_str
+from src.chess_utils import validate_move, bool_to_color_str, algebraic_to_uci
 from src.move_node import MoveNode
 from src.engine import ChessEngine
 from src.tree_utils import get_sequence_of_moves
@@ -24,7 +24,7 @@ class PureLLMPlayer:
             logger.warning("No response from LLM")
             return None
         else:
-            return rsps[0].move[:4]
+            return rsps[0].move
 
     def get_next_moves(self, prev_node: MoveNode):
         fen_str = prev_node.next_fen
@@ -35,8 +35,11 @@ class PureLLMPlayer:
             next_move = self.sample_next_move(fen_str, color, previous_tries)
             if next_move == None: #LLM not giving a output, should abort
                 return None
-            if validate_move(fen_str, next_move): #valid next move
-                return [next_move]
+            next_move_uci = algebraic_to_uci(fen_str, next_move)
+            if next_move_uci == None:
+                previous_tries.append(next_move)
+            elif validate_move(fen_str, next_move_uci): #valid next move
+                return [next_move_uci]
             else: #Illegal move, retry
                 previous_tries.append(next_move)
         logger.warning("Failed to get a valid next move from LLM")
@@ -87,7 +90,7 @@ class LanguageGuidedLLMPlayer:
             logger.warning("No response from LLM")
             return None
         else:
-            return rsps[0].move[:4]
+            return rsps[0].move
 
     def get_next_moves(self, prev_node: MoveNode):
         fen_str = prev_node.next_fen
@@ -98,8 +101,11 @@ class LanguageGuidedLLMPlayer:
             next_move = self.sample_next_move(fen_str, color, previous_moves, previous_tries)
             if next_move == None: #LLM not giving a output, should abort
                 return None
-            if validate_move(fen_str, next_move): #valid next move
-                return [next_move]
+            next_move_uci = algebraic_to_uci(fen_str, next_move)
+            if next_move_uci == None:
+                previous_tries.append(next_move)
+            elif validate_move(fen_str, next_move_uci): #valid next move
+                return [next_move_uci]
             else: #Illegal move, retry
                 previous_tries.append(next_move)
         logger.warning("Failed to get a valid next move from LLM")

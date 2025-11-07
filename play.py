@@ -72,8 +72,11 @@ def main(args):
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
     llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
-    #strat_verbalizer = LLMVerbalizer(llm)
-    strat_verbalizer = DirectVerbalizer()
+    if args.strat_type == 'json':
+        strat_verbalizer = DirectVerbalizer()
+    elif args.strat_type == 'tree' or args.strat_type == 'main':
+        strat_verbalizer = LLMVerbalizer(llm)
+
     player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
     #player = PureLLMPlayer(llm)
     #player = KBestPlayer(k=1, engine=engine)

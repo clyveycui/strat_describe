@@ -69,7 +69,7 @@ class LanguageModel:
                 response = self.model.responses.parse(
                     model=self.model_name,
                     reasoning={
-                        "effort": "low"
+                        "effort": "minimal"
                     },
                     input = msg,
                     text_format=schema)

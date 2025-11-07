@@ -1,5 +1,5 @@
 from stockfish import Stockfish
-from src.chess_utils import get_color_from_fen
+from src.chess_utils import get_color_from_fen, CHECK_MATE_SCORE
 from src.move_node import MoveNode
 
 class ChessEngine:
@@ -19,8 +19,8 @@ class ChessEngine:
             # If value == 0 then last moved player wins
             if eval['value']== 0:
                 curr_p = get_color_from_fen(fen)
-                return 100000 if not curr_p else -100000
-            return 100000 if eval['value'] >= 1 else -100000
+                return CHECK_MATE_SCORE if not curr_p else -CHECK_MATE_SCORE
+            return CHECK_MATE_SCORE if eval['value'] >= 1 else -CHECK_MATE_SCORE
         
     def get_top_moves(self, fen, k):
         self.stockfish.set_fen_position(fen)

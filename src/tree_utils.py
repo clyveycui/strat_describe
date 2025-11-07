@@ -23,7 +23,7 @@ def get_next_move_nodes(prev_node: MoveNode, player, opponent):
     return next_nodes
 
 #Assumes is constructed on the Opponent's turn
-def construct_moves_tree(prev_node: MoveNode, player, opponent, remaining_moves: int):
+def construct_moves_tree(prev_node: MoveNode, player, opponent, remaining_moves: int, prune: int = 200000):
     depth = opponent.d * 2
     depth = min(remaining_moves, depth)
     
@@ -66,15 +66,17 @@ def minimax(node: MoveNode, depth: int, engine: ChessEngine, player_color: bool)
     next_node = node.children[best_choice]
     return next_node, score
 
-def get_sequence_of_moves(node: MoveNode):
+def get_sequence_of_moves(node: MoveNode, algebraic: bool=True):
+    if algebraic:
+        move = node.move_algebraic
     if node.parent == None:
-        return [node.move]
-    previous_moves = get_sequence_of_moves(node.parent)
-    previous_moves.append(node.move)
+        return [move]
+    previous_moves = get_sequence_of_moves(node.parent, algebraic)
+    previous_moves.append(move)
     return previous_moves
 
 def get_json(node: MoveNode):
     def recurse(node):    
-        return {'player' : node.color_string(), 'move' : node.move, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
+        return {'player' : node.color_string(), 'move' : node.move_algebraic, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
     return dumps(recurse(node), indent=2)
     
