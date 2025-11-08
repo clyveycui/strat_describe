@@ -25,7 +25,7 @@ def get_next_move_nodes(prev_node: MoveNode, player, opponent):
 
 #Assumes is constructed on the Opponent's turn
 #We can prune by just halting the moment we see a bad move by the LLM player, since opponent chooses which branch to go
-def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remaining_moves: int, prune_val: int = 2 * CHECK_MATE_SCORE):
+def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remaining_moves: int, ref_score: int, prune_val: int = 2 * CHECK_MATE_SCORE):
     depth = opponent.d * 2
     depth = min(remaining_moves, depth)
     
@@ -42,7 +42,7 @@ def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remainin
                 if prune_val < 2 * CHECK_MATE_SCORE and node.player == 0:
                     assert len(next_nodes) == 1
                     node = next_nodes[0]
-                    if should_prune(node, prune_val, engine):
+                    if should_prune(node, prune_val, engine, ref_score):
                         return node
                 next_frontier.extend(next_nodes)
         current_depth += 1
@@ -88,17 +88,9 @@ def get_json(node: MoveNode):
         return {'player' : node.color_string(), 'move' : node.move_algebraic, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
     return dumps(recurse(node), indent=2)
 
-#TODO: prune based on some reference value instead
-def should_prune(node: MoveNode, prune_val, engine, first_move : bool = False):
-    if node.parent == None:
-        return False
-    if first_move:
-        prev_score = engine.eval_board(node.board_fen)
-        next_score = engine.eval_board(node.next_fen)
-    else:
-        prev_score = engine.eval_board(node.parent.board_fen)
-        next_score = engine.eval_board(node.next_fen)
-    score_decrease = prev_score - next_score if node.color else next_score - prev_score
+def should_prune(node: MoveNode, prune_val, engine, ref_score):
+    next_score = engine.eval_board(node.next_fen)
+    score_decrease = ref_score - next_score if node.color else next_score - ref_score
     if score_decrease > prune_val:
         return True
     return False

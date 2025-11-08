@@ -24,7 +24,7 @@ def get_strat(puzzle, puzzle_root, engine, strat_type='main', j=1):
     elif strat_type =='tree' or strat_type == 'json':
         return get_json(engine.get_strategy(puzzle_root.next_fen, j, puzzle.moves_to_play))
 
-def play_puzzle(puzzle, player, opp_k, opp_d, engine, prune_val, strat_type='main', j=1):
+def play_puzzle(puzzle, player, opp_k, opp_d, engine, ref_score, prune_val, strat_type='main', j=1):
     logger.info(f"Playing Puzzle {puzzle.pid}")
     puzzle_root = MoveNode(player=0, board_fen=puzzle.fen, move=puzzle.initial_move_uci, color=not puzzle.solving_player, parent=None)
     opponent = Opponent(k=opp_k, d=opp_d, color=not puzzle.solving_player, engine=engine)
@@ -47,7 +47,7 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, prune_val, strat_type='mai
             if prev_node.next_player() == 1:
                 next_node = player.select_next_move(prev_node)
                 if first_move:
-                    if should_prune(next_node, prune_val, engine, first_move):
+                    if should_prune(next_node, prune_val, engine, ref_score):
                         moves = get_sequence_of_moves(next_node, algebraic=False)
                         final_node = next_node
                         pruned = True
@@ -56,7 +56,7 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, prune_val, strat_type='mai
                 if next_node == None:
                     raise ValueError('LLM player failed to give valid move')
             else: 
-                pruned_final_node = construct_moves_tree(prev_node, player, opponent, engine, moves_to_play-total_moves, prune_val=prune_val)
+                pruned_final_node = construct_moves_tree(prev_node, player, opponent, engine, moves_to_play-total_moves, ref_score, prune_val=prune_val)
                 if pruned_final_node != None:
                     moves = get_sequence_of_moves(pruned_final_node, algebraic=False)
                     final_node = pruned_final_node
@@ -79,6 +79,10 @@ def load_puzzles(path, count):
     puzzles = pd.read_csv(path, nrows=count+1)
     return puzzles[['PuzzleId', 'FEN', 'Moves']]
 
+def load_ref_scores(path):
+    scores = pd.read_csv(path, index_col='pid')
+    return scores
+
 def load_api(path):
     with open(path, 'r') as f:
         api_key = json.load(f)['openai_api']
@@ -88,6 +92,7 @@ def main(args):
     logger.info(f"Starting experiment with parameters: opp_k : {args.opp_k}  opp_d : {args.opp_d} player_k : {args.player_k}, llm : {args.player_llm}")
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
+    ref_scores = load_ref_scores(args.ref_scores)
     if args.player_llm != 'engine':
         llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
     if args.strat_type == 'json':
@@ -108,8 +113,9 @@ def main(args):
         fen = pstr['FEN']
         main_line = pstr['Moves'].split()
         pid = pstr['PuzzleId']
+        ref_score = ref_scores.loc[pid]['eval'].item()
         puzzle = ChessPuzzle(fen, main_line, pid)
-        moves, final_eval, pruned = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, prune_val= args.prune_val, strat_type=args.strat_type, j=args.player_k)
+        moves, final_eval, pruned = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, ref_score, prune_val= args.prune_val, strat_type=args.strat_type, j=args.player_k)
         solving_player = puzzle.solving_player
         res.append([pid, moves, final_eval, solving_player, pruned])
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player', 'pruned'])
@@ -119,6 +125,7 @@ def main(args):
 if __name__ ==  '__main__':
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--puzzles_file', type=str, default='./data/puzzles/lichess_db_puzzle.csv')
+    args_parser.add_argument('--ref_scores', type=str, default='./ref_50.csv')
     args_parser.add_argument('--count', type=int, default=50)
     args_parser.add_argument('--player_llm', type=str, default="engine")
     args_parser.add_argument('--opp_k', type=int, default=1)
