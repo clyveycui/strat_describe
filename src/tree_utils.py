@@ -87,7 +87,8 @@ def get_json(node: MoveNode):
     def recurse(node):    
         return {'player' : node.color_string(), 'move' : node.move_algebraic, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
     return dumps(recurse(node), indent=2)
-    
+
+#TODO: prune based on some reference value instead
 def should_prune(node: MoveNode, prune_val, engine, first_move : bool = False):
     if node.parent == None:
         return False

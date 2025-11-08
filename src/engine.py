@@ -1,6 +1,9 @@
 from stockfish import Stockfish
+import logging
 from src.chess_utils import get_color_from_fen, CHECK_MATE_SCORE
 from src.move_node import MoveNode
+
+logger = logging.getLogger(__name__)
 
 class ChessEngine:
     

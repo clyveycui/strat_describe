@@ -88,18 +88,20 @@ def main(args):
     logger.info(f"Starting experiment with parameters: opp_k : {args.opp_k}  opp_d : {args.opp_d} player_k : {args.player_k}, llm : {args.player_llm}")
     engine = ChessEngine()
     puzzles = load_puzzles(args.puzzles_file, args.count)
-    llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
+    if args.player_llm != 'engine':
+        llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
     if args.strat_type == 'json':
         strat_verbalizer = DirectVerbalizer()
     elif args.strat_type == 'tree' or args.strat_type == 'main':
         strat_verbalizer = LLMVerbalizer(llm)
-    
-    if args.strat_type == 'none':
+        
+    if args.player_llm == 'engine':
+        player = KBestPlayer(k=1, engine=engine)
+    elif args.strat_type == 'none':
         player = PureLLMPlayer(llm)
     else:
         player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
 
-    #player = KBestPlayer(k=1, engine=engine)
     res = []
     for i in range(args.count):
         pstr = puzzles.iloc[i]
@@ -118,11 +120,11 @@ if __name__ ==  '__main__':
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--puzzles_file', type=str, default='./data/puzzles/lichess_db_puzzle.csv')
     args_parser.add_argument('--count', type=int, default=50)
-    args_parser.add_argument('--player_llm', type=str, default="o3")
+    args_parser.add_argument('--player_llm', type=str, default="engine")
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
     args_parser.add_argument('--player_k', type=int, default=1)
-    args_parser.add_argument('--strat_type', type=str, default='main')
+    args_parser.add_argument('--strat_type', type=str, choices=['none', 'main', 'tree', 'json'], default='none')
     args_parser.add_argument('--prune_val', type=int, default = 2 * CHECK_MATE_SCORE)
     
     args = args_parser.parse_args()

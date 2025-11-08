@@ -1,0 +1,51 @@
+,pid,moves,eval,solving_player,pruned
+0,00008,"[f2g3, e6e7, b2b1, b3c1, b1c1, h6c1]",840,True,False
+1,0000D,"[d3d6, f8d8, d6d8, f6d8]",-561,False,False
+2,0008Q,"[e7f7, f5e5, e2d3, e5e6]",-487,False,False
+3,0009B,"[b6c5, e2g4, h3g4, d1g4]",425,True,False
+4,000Pw,"[e4d2, d4e2, g1g2, e2c3]",-530,False,False
+5,000VW,"[g6f5, d5c5, c2e4, h5g5, g7h8, g5f6]",727,True,False
+6,000Vc,"[g4h5, g6h5, c5d4, h5h4, d4e3, e6f5]",-908,False,False
+7,000Zo,"[e5f6, e8e1, g1f2, e1f1]",-100000,False,False
+8,000aY,"[g5e7, a5c3, b2c3, c6e7]",-830,False,False
+9,000h0,"[e4e6, f6f3, g2f3, h5h2, g1f1, h2h3, f1e2, h3e6]",-817,False,False
+10,000hf,"[e8f7, e2e6, f7f8, e6f7]",100000,True,False
+11,000lC,"[d1d6, d7d6, b7b6, a7b6]",-666,False,False
+12,000mr,"[e3g3, f7f4, e5f4, f8f4]",-550,False,False
+13,000o3,"[e7d6, d3d4, d6e7, d4c5]",705,True,False
+14,000qP,"[f2f1, f4f3, f1e1, c2c1, e1d2, c1g1]",-807,False,False
+15,000rO,"[a6a5, e5c7, a5a6, c7d8]",-6113,False,False
+16,000rZ,"[d4e6, d6h2]",-100000,False,False
+17,00143,"[d8f6, d1h5, h7h6, h5c5]",691,True,False
+18,0017R,"[e5c4, d3c4, b6c4, d1a4, d8d7, a4c4]",575,True,False
+19,0018S,"[b7b6, d4a1, d8d7, f1c1]",489,True,False
+20,001Fg,"[c8c7, d4e2, g1h2, a4f4, h2h1, e2g3, f2g3, f4f1]",-522,False,False
+21,001Hi,"[b6d4, f4f6, d4f2, f6f2, d2f2, g1f2]",738,True,False
+22,001KR,"[h8g8, d1d8]",100000,True,False
+23,001Oo,"[d1a4, a2a4, b5a4, b4b5, a4a3, b5b6]",44,True,False
+24,001Wz,"[e8e5, d1d8, e5e8, d8e8]",100000,True,False
+25,001XA,"[b8c7, b1b7, c7b7, e4f6, e7f6, g2b7]",661,True,False
+26,001aK,"[d2e2, f1e2, g3g2, e3e4, g2g1r, c5g1]",837,True,False
+27,001cr,"[c5c4, d7e8]",100000,True,False
+28,001gi,"[c7a8, a5c3]",-100000,False,False
+29,001h8,"[c4e2, h4h7, c7h7, c1c8, g8g7, c8c7]",449,True,False
+30,001kG,"[e7c5, d1h5, f7e7, h5c5]",955,True,False
+31,001m3,"[e2e6, h8h1, f1e2, h1a1]",-515,False,False
+32,001om,"[g4h4, c5f2, g2g3, f2g3]",-100000,False,False
+33,001pC,"[f1g1, h3f2]",-100000,False,False
+34,001u3,"[c7b6, a6c8, g8h7, c8b7]",388,True,False
+35,001uD,"[f7f6, f3d2, c4d6, g2g4, c5c2, c1c2]",448,True,False
+36,001w5,"[f8f7, c2h7, g8h7, g7g8q]",100000,True,False
+37,001wR,"[b7b5, b4a5, a6b7, c4d6, b7b8, a5d8]",100000,True,False
+38,001wb,"[h2g3, g6h5]",-100000,False,False
+39,001wr,"[f2f3, d6c5, g1h1, c5c4]",-535,False,False
+40,001xO,"[d3a6, b6c5, a6c8, c5c4]",-598,False,False
+41,001xl,"[g7f6, e7f7, f6e5, f7f4]",283,True,False
+42,002CP,"[f2e3, g6c2]",-100000,False,False
+43,002Ds,"[b7b6, b4b5, c3d1, e3e2, b6a5, b5a6]",188,True,False
+44,002GQ,"[f1c1, c3e2, g1f1, e2c1]",-768,False,False
+45,002HE,"[g1f2, b8g3]",-100000,False,False
+46,002Hv,"[d5f4, g5f4, d1d2, f2g2, h3h4, f4f3, h4h5, f3f2]",-5774,False,False
+47,002IE,"[c6e5, d4e5, d6e7, e5f6]",673,True,False
+48,002KJ,"[f8e7, f3e5, c7e5, e2g4]",667,True,False
+49,002LF,"[d7g4, e3e5, f7f6, e5c7, g7h6, c7h2]",659,True,False

@@ -138,7 +138,8 @@ class KBestPlayer:
         self.engine = engine
     
     #Returns the set of candidate moves
-    def get_next_moves(self, fen_str, color):
+    def get_next_moves(self, prev_node: MoveNode):
+        fen_str = prev_node.next_fen
         best_moves = self.engine.get_top_moves(fen=fen_str, k=self.k)
         return [best_moves[self.k - 1]['Move']]
     
@@ -149,7 +150,7 @@ class KBestPlayer:
             assert len(prev_node.children) == 1
             return prev_node.children[0]
 
-        next_move = self.get_next_moves(prev_node.next_fen, prev_node.color)[0]
+        next_move = self.get_next_moves(prev_node)[0]
         if next_move == None:
             return None
         
