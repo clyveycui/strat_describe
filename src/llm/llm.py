@@ -64,12 +64,13 @@ class LanguageModel:
                 rsps.append(rsp)
         else:
             time.sleep(1)
+            effort = 'low' if self.model == 'o3' else 'minimal'
             for m in message:
                 msg = [{"role": "user", "content": m}]
                 response = self.model.responses.parse(
                     model=self.model_name,
                     reasoning={
-                        "effort": "low"
+                        "effort": effort
                     },
                     input = msg,
                     text_format=schema)
