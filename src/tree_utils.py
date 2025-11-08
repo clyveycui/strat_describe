@@ -25,7 +25,7 @@ def get_next_move_nodes(prev_node: MoveNode, player, opponent):
 
 #Assumes is constructed on the Opponent's turn
 #We can prune by just halting the moment we see a bad move by the LLM player, since opponent chooses which branch to go
-def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remaining_moves: int, prune: int = 2 * CHECK_MATE_SCORE):
+def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remaining_moves: int, prune_val: int = 2 * CHECK_MATE_SCORE):
     depth = opponent.d * 2
     depth = min(remaining_moves, depth)
     
@@ -39,12 +39,11 @@ def construct_moves_tree(prev_node: MoveNode, player, opponent, engine, remainin
             else:
                 next_nodes = get_next_move_nodes(node, player, opponent)
                 node.add_children(next_nodes)
-                if prune < 2 * CHECK_MATE_SCORE and node.player == 0:
+                if prune_val < 2 * CHECK_MATE_SCORE and node.player == 0:
                     assert len(next_nodes) == 1
-                    prev_score = engine.eval_board(node.next_fen)
-                    next_score = engine.eval_board(next_nodes[0].next_fen)
-                    if abs(prev_score - next_score) > prune:
-                        return next_nodes
+                    node = next_nodes[0]
+                    if should_prune(node, prune_val, engine):
+                        return node
                 next_frontier.extend(next_nodes)
         current_depth += 1
         current_frontier = next_frontier
@@ -76,6 +75,8 @@ def minimax(node: MoveNode, depth: int, engine: ChessEngine, player_color: bool)
 def get_sequence_of_moves(node: MoveNode, algebraic: bool=True):
     if algebraic:
         move = node.move_algebraic
+    else:
+        move = node.move
     if node.parent == None:
         return [move]
     previous_moves = get_sequence_of_moves(node.parent, algebraic)
@@ -87,3 +88,16 @@ def get_json(node: MoveNode):
         return {'player' : node.color_string(), 'move' : node.move_algebraic, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
     return dumps(recurse(node), indent=2)
     
+def should_prune(node: MoveNode, prune_val, engine, first_move : bool = False):
+    if node.parent == None:
+        return False
+    if first_move:
+        prev_score = engine.eval_board(node.board_fen)
+        next_score = engine.eval_board(node.next_fen)
+    else:
+        prev_score = engine.eval_board(node.parent.board_fen)
+        next_score = engine.eval_board(node.next_fen)
+    score_decrease = prev_score - next_score if node.color else next_score - prev_score
+    if score_decrease > prune_val:
+        return True
+    return False
