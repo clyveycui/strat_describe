@@ -12,8 +12,9 @@ class ChessPuzzle:
     def is_complete(self):
         return self.current_moves == self.moves_to_play
     
+    #Not Implemented
     def get_board_state(self):
         return self.board.fen()
-
+    #Not Implemented
     def get_current_player(self):
         return self.board.turn

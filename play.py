@@ -32,13 +32,12 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, ref_score, prune_val, stra
     total_moves = 0
     moves_to_play = puzzle.moves_to_play
     prev_node = puzzle_root
-    
+    strat_description = None
 
     if strat_type != 'none':
         strategy = get_strat(puzzle, puzzle_root, engine, strat_type, j)
         logger.info(f"Strategy for puzzle: fen: {puzzle_root.next_fen} strategy: {strategy}")
-        player.get_description(puzzle_root.next_fen, puzzle.solving_player, strategy, type=strat_type)
-
+        strat_description = player.get_description(puzzle_root.next_fen, puzzle.solving_player, strategy, type=strat_type)
     moves = [prev_node]
     pruned = False
     first_move = True
@@ -71,9 +70,9 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, ref_score, prune_val, stra
     except Exception:
         
         logger.warning(f'Puzzle failed with exception {traceback.format_exc()}')
-        return None, None, None
+        return None, None, None, strat_description
 
-    return moves, engine.eval_board(final_node.next_fen), pruned
+    return moves, engine.eval_board(final_node.next_fen), pruned, strat_description
 
 def load_puzzles(path, count):
     puzzles = pd.read_csv(path, nrows=count+1)
@@ -108,6 +107,7 @@ def main(args):
         player = LanguageGuidedLLMPlayer(llm, strat_verbalizer)
 
     res = []
+    strat_descriptions = []
     for i in range(args.count):
         pstr = puzzles.iloc[i]
         fen = pstr['FEN']
@@ -115,18 +115,21 @@ def main(args):
         pid = pstr['PuzzleId']
         ref_score = ref_scores.loc[pid]['eval'].item()
         puzzle = ChessPuzzle(fen, main_line, pid)
-        moves, final_eval, pruned = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, ref_score, prune_val= args.prune_val, strat_type=args.strat_type, j=args.player_k)
+        moves, final_eval, pruned, strat_description = play_puzzle(puzzle, player, args.opp_k, args.opp_d, engine, ref_score, prune_val= args.prune_val, strat_type=args.strat_type, j=args.player_k)
         solving_player = puzzle.solving_player
         res.append([pid, moves, final_eval, solving_player, pruned])
+        strat_descriptions.append({'pid': pid, 'strat_description': strat_description})
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player', 'pruned'])
-    out_file = f'./data/results/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv'
+    out_file = f'../data/results/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv'
     res_df.to_csv(out_file)
+    with open(f'../data/results/descr_{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv', 'w') as f:
+        json.dump(strat_descriptions, f)
     
 if __name__ ==  '__main__':
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument('--puzzles_file', type=str, default='./data/puzzles/lichess_db_puzzle.csv')
-    args_parser.add_argument('--ref_scores', type=str, default='./ref_50.csv')
-    args_parser.add_argument('--count', type=int, default=50)
+    args_parser.add_argument('--puzzles_file', type=str, default='../data/lichess_db_puzzle.csv')
+    args_parser.add_argument('--ref_scores', type=str, default='../data/results/ref_50.csv')
+    args_parser.add_argument('--count', type=int, default=30)
     args_parser.add_argument('--player_llm', type=str, default="engine")
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
@@ -135,7 +138,7 @@ if __name__ ==  '__main__':
     args_parser.add_argument('--prune_val', type=int, default = 2 * CHECK_MATE_SCORE)
     
     args = args_parser.parse_args()
-    log_file = f'./data/logs/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
+    log_file = f'../data/logs/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
     logging.basicConfig(filename=log_file, format="%(asctime)s - %(levelname)s : %(message)s", encoding='utf-8', level=logging.INFO)
     
     main(args)

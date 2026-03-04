@@ -2,7 +2,6 @@ from vllm import LLM, SamplingParams
 from vllm.sampling_params import GuidedDecodingParams
 from pydantic import BaseModel, ValidationError
 import logging
-from tenacity import retry, stop_after_attempt, wait_fixed
 from openai import OpenAI
 import time
 
