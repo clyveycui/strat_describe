@@ -93,7 +93,10 @@ def main(args):
     puzzles = load_puzzles(args.puzzles_file, args.count)
     ref_scores = load_ref_scores(args.ref_scores)
     if args.player_llm != 'engine':
-        llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
+        if args.player_llm == 'o3':
+            llm = LanguageModel(args.player_llm, online=True, api_key=load_api('api_key.json'))
+        else:
+            llm = LanguageModel(args.player_llm, online=False, tensor_parallel_size=args.tensor_parallel_size)
     if args.strat_type == 'json':
         strat_verbalizer = DirectVerbalizer()
     elif args.strat_type == 'tree' or args.strat_type == 'main':
@@ -124,9 +127,9 @@ def main(args):
         res.append([pid, moves, final_eval, solving_player, pruned])
         strat_descriptions.append({'pid': pid, 'strat_description': strat_description})
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player', 'pruned'])
-    out_file = f'../data/results/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv'
+    out_file = f'../data/results/{args.player_llm.split('/')[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv'
     res_df.to_csv(out_file)
-    with open(f'../data/results/descr_{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.json', 'w') as f:
+    with open(f'../data/results/descr_{args.player_llm.split('/')[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.json', 'w') as f:
         json.dump(strat_descriptions, f, indent=4)
     
 if __name__ ==  '__main__':
@@ -141,9 +144,10 @@ if __name__ ==  '__main__':
     args_parser.add_argument('--strat_type', type=str, choices=['none', 'main', 'tree', 'json', 'file'], default='none')
     args_parser.add_argument('--prune_val', type=int, default = 2 * CHECK_MATE_SCORE)
     args_parser.add_argument('--description_path', type=str, default = None)
+    args_parser.add_argument('--tensor_parallel_size', type=int, default = 1)
         
     args = args_parser.parse_args()
-    log_file = f'../data/logs/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
+    log_file = f'../data/logs/{args.player_llm.split('/')[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
     logging.basicConfig(filename=log_file, format="%(asctime)s - %(levelname)s : %(message)s", encoding='utf-8', level=logging.INFO)
     
     main(args)
