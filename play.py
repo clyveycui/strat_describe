@@ -127,9 +127,9 @@ def main(args):
         res.append([pid, moves, final_eval, solving_player, pruned])
         strat_descriptions.append({'pid': pid, 'strat_description': strat_description})
     res_df = pd.DataFrame(res, columns=['pid', 'moves', 'eval', 'solving_player', 'pruned'])
-    out_file = f'../data/results/{args.player_llm.split('/')[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv'
+    out_file = f'../data/results/{args.player_llm.split("/")[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.csv'
     res_df.to_csv(out_file)
-    with open(f'../data/results/descr_{args.player_llm.split('/')[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.json', 'w') as f:
+    with open(f'../data/results/descr_{args.player_llm.split("/")[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_" + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.json', 'w') as f:
         json.dump(strat_descriptions, f, indent=4)
     
 if __name__ ==  '__main__':
@@ -147,7 +147,7 @@ if __name__ ==  '__main__':
     args_parser.add_argument('--tensor_parallel_size', type=int, default = 1)
         
     args = args_parser.parse_args()
-    log_file = f'../data/logs/{args.player_llm.split('/')[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
+    log_file = f'../data/logs/{args.player_llm.split("/")[-1]}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
     logging.basicConfig(filename=log_file, format="%(asctime)s - %(levelname)s : %(message)s", encoding='utf-8', level=logging.INFO)
     
     main(args)
