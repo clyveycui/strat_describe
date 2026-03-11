@@ -1,7 +1,7 @@
 from src.llm.llm import LanguageModel
 from src.llm.llm_schema import StrategyDescription
 from src.prompts.prompts import verbalize_main_line_structured_output, verbalize_strategy_structured_output
-from src.move_node import MoveNode
+import json
 from src.chess_utils import bool_to_color_str
 import logging
 
@@ -27,7 +27,7 @@ class LLMVerbalizer:
         else:
             return rsps[0].description
     
-    def verbalize(self, fen_str, color, strategy, type):
+    def verbalize(self, fen_str, color, strategy, pid, type,):
         retries = 0
         while retries < self.max_retries:
             description = self.sample_verbalized_strategy(fen_str, color, strategy, type) 
@@ -38,8 +38,18 @@ class LLMVerbalizer:
 
 #Verbalizer that does not verbalize the strategy, just returns the original strategy in its form
 class DirectVerbalizer:
-    def verbalize(self, fen_str, color, strategy, type):
+    def verbalize(self, fen_str, color, strategy, pid, type):
         return strategy
         
-
-#TODO: Implement caching of strategy so it is consistent across different opp parameters
+class FileVerbalizer:
+    def __init__(self, path : str):
+        self.path = path
+        with open(path, 'r') as f:
+            s = json.load(f)
+        self.strategies = {x['pid'] : x['strat_description'] for x in s}
+    def verbalize(self, fen_str, color, strategy, pid, type):
+        cached_strategy = self.strategies.get(pid, None)
+        if not cached_strategy:
+            logger.warning(f'Failed to retrieve strategy for {pid} from {self.path}')
+            return ''
+        return cached_strategy

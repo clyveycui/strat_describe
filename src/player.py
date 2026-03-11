@@ -67,8 +67,8 @@ class LanguageGuidedLLMPlayer:
         self.description = None
         self.description_type = None
         
-    def get_description(self, fen_str, color, strategy, type: str ='main'):
-        description = self.strat_verbalizer.verbalize(fen_str, color, strategy, type)
+    def get_description(self, fen_str, color, strategy, pid, type: str ='main'):
+        description = self.strat_verbalizer.verbalize(fen_str, color, strategy, pid, type)
         self.description = description
         self.description_type = type
         return description

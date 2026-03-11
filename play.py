@@ -8,7 +8,7 @@ from src.opponent import Opponent
 from src.tree_utils import construct_moves_tree, get_json, get_sequence_of_moves, should_prune
 from src.chess_utils import CHECK_MATE_SCORE
 from src.llm.llm import LanguageModel
-from src.strat_verbalizer import LLMVerbalizer, DirectVerbalizer
+from src.strat_verbalizer import LLMVerbalizer, DirectVerbalizer, FileVerbalizer
 
 from torch.cuda import device_count
 import pandas as pd
@@ -37,7 +37,7 @@ def play_puzzle(puzzle, player, opp_k, opp_d, engine, ref_score, prune_val, stra
     if strat_type != 'none':
         strategy = get_strat(puzzle, puzzle_root, engine, strat_type, j)
         logger.info(f"Strategy for puzzle: fen: {puzzle_root.next_fen} strategy: {strategy}")
-        strat_description = player.get_description(puzzle_root.next_fen, puzzle.solving_player, strategy, type=strat_type)
+        strat_description = player.get_description(puzzle_root.next_fen, puzzle.solving_player, strategy, puzzle.pid, type=strat_type)
     moves = [prev_node]
     pruned = False
     first_move = True
@@ -98,6 +98,8 @@ def main(args):
         strat_verbalizer = DirectVerbalizer()
     elif args.strat_type == 'tree' or args.strat_type == 'main':
         strat_verbalizer = LLMVerbalizer(llm)
+    elif args.strat_type == 'file':
+        strat_verbalizer = FileVerbalizer()
         
     if args.player_llm == 'engine':
         player = KBestPlayer(k=1, engine=engine)
