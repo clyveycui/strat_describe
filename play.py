@@ -99,7 +99,9 @@ def main(args):
     elif args.strat_type == 'tree' or args.strat_type == 'main':
         strat_verbalizer = LLMVerbalizer(llm)
     elif args.strat_type == 'file':
-        strat_verbalizer = FileVerbalizer()
+        if not args.description_path:
+            logger.error('Path to description file not provided')
+        strat_verbalizer = FileVerbalizer(args.description_path)
         
     if args.player_llm == 'engine':
         player = KBestPlayer(k=1, engine=engine)
@@ -136,9 +138,10 @@ if __name__ ==  '__main__':
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
     args_parser.add_argument('--player_k', type=int, default=1)
-    args_parser.add_argument('--strat_type', type=str, choices=['none', 'main', 'tree', 'json'], default='none')
+    args_parser.add_argument('--strat_type', type=str, choices=['none', 'main', 'tree', 'json', 'file'], default='none')
     args_parser.add_argument('--prune_val', type=int, default = 2 * CHECK_MATE_SCORE)
-    
+    args_parser.add_argument('--description_path', type=str, default = None)
+        
     args = args_parser.parse_args()
     log_file = f'../data/logs/{args.player_llm}_{args.count}_{args.opp_k}_{args.opp_d}_{args.strat_type}_{args.player_k}{"_"  + str(args.prune_val) if args.prune_val != 2* CHECK_MATE_SCORE else ""}.log'
     logging.basicConfig(filename=log_file, format="%(asctime)s - %(levelname)s : %(message)s", encoding='utf-8', level=logging.INFO)
