@@ -104,9 +104,9 @@ def main(args):
             llm = LanguageModel('Qwen/Qwen3-30B-A3B-Thinking-2507', online=True, api_key='EMPTY', base_url=args.api_base_url)
         else:
             llm = LanguageModel(args.player_llm, online=False, tensor_parallel_size=args.tensor_parallel_size)
-    if args.strat_type in ['json', 'direct_concept']:
+    if args.strat_type in ['json', 'direct-concept']:
         strat_verbalizer = DirectVerbalizer(puzzle_concepts)
-    elif args.strat_type in ['tree', 'main', 'concept', 'tree_with_concept']:
+    elif args.strat_type in ['tree', 'main', 'concept', 'tree-concept']:
         strat_verbalizer = LLMVerbalizer(llm, puzzle_concepts)
     elif args.strat_type in ['file']:
         if not args.description_path:
@@ -149,7 +149,7 @@ if __name__ ==  '__main__':
     args_parser.add_argument('--opp_k', type=int, default=1)
     args_parser.add_argument('--opp_d', type=int, default=1)
     args_parser.add_argument('--player_k', type=int, default=1)
-    args_parser.add_argument('--strat_type', type=str, choices=['none', 'main', 'tree', 'json', 'file', 'direct_concept', 'concept', 'tree_with_concept'], default='none')
+    args_parser.add_argument('--strat_type', type=str, choices=['none', 'main', 'tree', 'json', 'file', 'direct-concept', 'concept', 'tree-concept'], default='none')
     args_parser.add_argument('--prune_val', type=int, default = 2 * CHECK_MATE_SCORE)
     args_parser.add_argument('--description_path', type=str, default = None)
     args_parser.add_argument('--tensor_parallel_size', type=int, default = 1)

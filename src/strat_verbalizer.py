@@ -21,10 +21,10 @@ class LLMVerbalizer:
             get_verbalized_strategy_prompt = verbalize_strategy_tree_structured_output.format(fen_str=fen_str, player=player_str, strategy=strategy)
         elif type == 'concept':
             get_verbalized_strategy_prompt = verbalize_strategy_concepts_structured_output.format(fen_str=fen_str, player=player_str, concept=self.concepts[pid])
-        elif type == 'tree_with_concept':
+        elif type == 'tree-concept':
             get_verbalized_strategy_prompt = verbalize_strategy_tree_with_concepts_structured_output.format(fen_str=fen_str, player=player_str, strategy=strategy, concept=self.concepts[pid])
         else:
-            raise NotImplementedError(f'This type of strategy is not supported. Type: {type}')
+            raise NotImplementedError(f'This type of strategy is not supported in LLMVerbalizer. Type: {type}')
         rsps = self.llm.structured_response([get_verbalized_strategy_prompt], schema=StrategyDescription)
         if not rsps:
             logger.warning("No response from LLM")
@@ -49,8 +49,10 @@ class DirectVerbalizer:
     def verbalize(self, fen_str, color, strategy, pid, type):
         if type == 'json':
             return strategy
-        else:
+        elif type == 'direct-concept':
             return self.concepts[pid]
+        else:
+            raise NotImplementedError(f'This type of strategy is not supported in DirectVerbalizer. Type: {type}')
         
 class FileVerbalizer:
     def __init__(self, path : str):
