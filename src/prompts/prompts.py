@@ -119,7 +119,7 @@ Please follow this JSON template:
 }}
 '''
 
-verbalize_strategy_structured_output = '''You are analysing a game of Chess right now. You are given the current state of the board in FEN notation, the current player's color, and a strategy describing the best moves for the current player as well as possible opponent response variations as calculated by a chess engine. The strategy is represented as a json tree, and the moves in the strategy are in the Algebraic format. You should provide a high level description of this line of moves from the perspective of the current player so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
+verbalize_strategy_tree_structured_output = '''You are analysing a game of Chess right now. You are given the current state of the board in FEN notation, the current player's color, and a strategy describing the best moves for the current player as well as possible opponent response variations as calculated by a chess engine. The strategy is represented as a json tree, and the moves in the strategy are in the Algebraic format. You should provide a high level description of this strategy tree from the perspective of the current player so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
 
 FEN:
 {fen_str}
@@ -127,6 +127,38 @@ Current Player:
 {player}
 Strategy:
 {strategy}
+
+Please follow this JSON template:
+{{
+"description" : "<high level description of the strategy>",
+}}
+'''
+
+verbalize_strategy_concepts_structured_output = '''You are analysing a game of Chess right now. You are given the current state of the board in FEN notation, the current player's color, and a list of high level chess concepts describing the idea behind the correct strategy. You should provide a coherent description of these concepts from the perspective of the current player so that another chess player will be able to follow this description and play the strategy. Keep it short and sweet.
+
+FEN:
+{fen_str}
+Current Player:
+{player}
+Concepts:
+{concept}
+
+Please follow this JSON template:
+{{
+"description" : "<high level description of the concepts>",
+}}
+'''
+
+verbalize_strategy_tree_with_concepts_structured_output = '''You are analysing a game of Chess right now. You are given the current state of the board in FEN notation, the current player's color, and a strategy describing the best moves for the current player as well as possible opponent response variations as calculated by a chess engine. The strategy is represented as a json tree, and the moves in the strategy are in the Algebraic format. You are also provided a list of high level concepts related to the strategy. You should provide a high level description of this strategy tree with the help of the list of concepts from the perspective of the current player so that another chess player will be able to follow this description and play the strategy as shown here. Keep it short and sweet.
+
+FEN:
+{fen_str}
+Current Player:
+{player}
+Strategy:
+{strategy}
+Concepts:
+{concept}
 
 Please follow this JSON template:
 {{

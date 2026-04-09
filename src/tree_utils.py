@@ -86,7 +86,7 @@ def get_sequence_of_moves(node: MoveNode, algebraic: bool=True):
 def get_json(node: MoveNode):
     def recurse(node):    
         return {'player' : node.color_string(), 'move' : node.move_algebraic, 'responses' : [recurse(c) for c in node.children] if node.has_children() else []}
-    return dumps(recurse(node), indent=2)
+    return dumps(recurse(node))
 
 def should_prune(node: MoveNode, prune_val, engine, ref_score):
     next_score = engine.eval_board(node.next_fen)

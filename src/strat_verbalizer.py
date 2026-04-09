@@ -1,6 +1,6 @@
 from src.llm.llm import LanguageModel
 from src.llm.llm_schema import StrategyDescription
-from src.prompts.prompts import verbalize_main_line_structured_output, verbalize_strategy_structured_output
+from src.prompts.prompts import *
 import json
 from src.chess_utils import bool_to_color_str
 import logging
@@ -8,16 +8,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 class LLMVerbalizer:
-    def __init__(self, llm : LanguageModel, max_retries : int = 3):
+    def __init__(self, llm : LanguageModel, puzzle_concepts : dict, max_retries : int = 3):
         self.llm = llm
+        self.concepts = puzzle_concepts
         self.max_retries = max_retries
         
-    def sample_verbalized_strategy(self, fen_str, color, strategy, type):
+    def sample_verbalized_strategy(self, fen_str, color, strategy, pid, type):
         player_str = bool_to_color_str(color)
         if type == 'main':
             get_verbalized_strategy_prompt = verbalize_main_line_structured_output.format(fen_str=fen_str, player=player_str, principle_line=strategy)
         elif type == 'tree':
-            get_verbalized_strategy_prompt = verbalize_strategy_structured_output.format(fen_str=fen_str, player=player_str, strategy=strategy)
+            get_verbalized_strategy_prompt = verbalize_strategy_tree_structured_output.format(fen_str=fen_str, player=player_str, strategy=strategy)
+        elif type == 'concept':
+            get_verbalized_strategy_prompt = verbalize_strategy_concepts_structured_output.format(fen_str=fen_str, player=player_str, concept=self.concepts[pid])
+        elif type == 'tree_with_concept':
+            get_verbalized_strategy_prompt = verbalize_strategy_tree_with_concepts_structured_output.format(fen_str=fen_str, player=player_str, strategy=strategy, concept=self.concepts[pid])
         else:
             raise NotImplementedError(f'This type of strategy is not supported. Type: {type}')
         rsps = self.llm.structured_response([get_verbalized_strategy_prompt], schema=StrategyDescription)
@@ -27,10 +32,10 @@ class LLMVerbalizer:
         else:
             return rsps[0].description
     
-    def verbalize(self, fen_str, color, strategy, pid, type,):
+    def verbalize(self, fen_str, color, strategy, pid, type):
         retries = 0
         while retries < self.max_retries:
-            description = self.sample_verbalized_strategy(fen_str, color, strategy, type) 
+            description = self.sample_verbalized_strategy(fen_str, color, strategy, pid, type) 
             if description != None:
                 break
             retries += 1
@@ -38,8 +43,14 @@ class LLMVerbalizer:
 
 #Verbalizer that does not verbalize the strategy, just returns the original strategy in its form
 class DirectVerbalizer:
+    def __init__(self, puzzle_concepts):
+        self.concepts = puzzle_concepts
+        
     def verbalize(self, fen_str, color, strategy, pid, type):
-        return strategy
+        if type == 'json':
+            return strategy
+        else:
+            return self.concepts[pid]
         
 class FileVerbalizer:
     def __init__(self, path : str):
@@ -47,6 +58,7 @@ class FileVerbalizer:
         with open(path, 'r') as f:
             s = json.load(f)
         self.strategies = {x['pid'] : x['strat_description'] for x in s}
+
     def verbalize(self, fen_str, color, strategy, pid, type):
         cached_strategy = self.strategies.get(pid, None)
         if not cached_strategy:

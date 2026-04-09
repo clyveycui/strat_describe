@@ -20,7 +20,8 @@ class LanguageModel:
         tensor_parallel_size: int=1,
         max_num_batched_tokens: int=16384,
         online: bool=False,
-        api_key: bool=None
+        api_key: bool=None,
+        base_url: str=None
     ) -> None:
         self.online = online
         if not self.online:
@@ -35,7 +36,7 @@ class LanguageModel:
                 max_num_batched_tokens=max_num_batched_tokens, 
                 enforce_eager=True)
         else:
-            self.model=OpenAI(api_key=api_key)
+            self.model=OpenAI(api_key=api_key, base_url=base_url)
         self.model_name = model
 
     
@@ -63,23 +64,30 @@ class LanguageModel:
                 rsps.append(rsp)
         else:
             time.sleep(1)
-            effort = 'low' if self.model_name == 'o3' else 'minimal'
+            effort = 'low'
             for m in message:
                 msg = [{"role": "user", "content": m}]
-                response = self.model.responses.parse(
+                response = self.model.responses.create(
                     model=self.model_name,
-                    reasoning={
-                        "effort": effort
-                    },
-                    input = msg,
-                    text_format=schema)
-                rsp = response
-                # if (response.refusal):
-                #     print(response.refusal)
-                #     logger.error(response.refusal)
-                #     return None
-                # else:
-                rsps.append(rsp.output_parsed)
+                    reasoning={"effort": effort},
+                    input=msg,
+                )
+                # Extract text from the message output item
+                raw = next(
+                    item.content[0].text
+                    for item in response.output
+                    if item.type == "message"
+                )
+                # Strip <think>...</think> reasoning block if present
+                if '</think>' in raw:
+                    raw = raw.split('</think>', 1)[1].strip()
+                try:
+                    rsp = schema.model_validate_json(raw)
+                except ValidationError as e:
+                    logger.error(e)
+                    logger.error(raw)
+                    rsp = None
+                rsps.append(rsp)
                 logger.info(rsp)
         logger.info(f'RESPONSES: {rsps}')
         return rsps
