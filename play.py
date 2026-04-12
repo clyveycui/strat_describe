@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def get_strat(puzzle, puzzle_root, engine, strat_type='main', j=1):
     if strat_type =='main':
         return puzzle.solution
-    elif strat_type =='tree' or strat_type == 'json':
+    elif strat_type in ['tree', 'json', 'tree-concept']:
         return get_json(engine.get_strategy(puzzle_root.next_fen, j, puzzle.moves_to_play))
 
 def play_puzzle(puzzle, player, opp_k, opp_d, engine, ref_score, prune_val, strat_type='main', j=1, description_only=False):

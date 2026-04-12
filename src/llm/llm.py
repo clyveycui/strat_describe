@@ -2,10 +2,17 @@ from vllm import LLM, SamplingParams
 from vllm.sampling_params import GuidedDecodingParams
 from pydantic import BaseModel, ValidationError
 import logging
+import re
 from openai import OpenAI
 import time
 
 logger = logging.getLogger(__name__)
+
+_TRAILING_COMMA_RE = re.compile(r',\s*([}\]])')
+
+def _fix_trailing_commas(text: str) -> str:
+    """Remove trailing commas before closing braces/brackets (invalid JSON)."""
+    return _TRAILING_COMMA_RE.sub(r'\1', text)
 
 
 class LanguageModel:
@@ -81,6 +88,7 @@ class LanguageModel:
                 # Strip <think>...</think> reasoning block if present
                 if '</think>' in raw:
                     raw = raw.split('</think>', 1)[1].strip()
+                raw = _fix_trailing_commas(raw)
                 try:
                     rsp = schema.model_validate_json(raw)
                 except ValidationError as e:
